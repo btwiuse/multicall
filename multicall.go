@@ -59,12 +59,12 @@ func (cmdRun RunnerFuncMap) Run(args []string) error {
 			)
 	}
 
-	ok, _ := matcher.Result()
+	ok, err := matcher.Result()
 	if !ok {
 		usage(cmdRun)
 	}
 
-	return nil
+	return err.(error)
 }
 
 func usage(cmdRun RunnerFuncMap) {
