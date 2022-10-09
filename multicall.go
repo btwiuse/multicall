@@ -64,7 +64,10 @@ func (cmdRun RunnerFuncMap) Run(args []string) error {
 		usage(cmdRun)
 	}
 
-	return err.(error)
+	if err != nil {
+		return err.(error)
+	}
+	return nil
 }
 
 func usage(cmdRun RunnerFuncMap) {
