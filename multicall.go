@@ -65,7 +65,10 @@ func (cmdRun RunnerFuncMap) Run(args []string) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("multicall: %w", err)
+		if len(args) == 0 {
+			return fmt.Errorf("multicall: %w", err)
+		}
+		return fmt.Errorf("multicall: %s: %w", args[0], err)
 	}
 
 	return nil
