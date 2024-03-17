@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	match "github.com/alexpantyukhin/go-pattern-match"
@@ -21,6 +22,22 @@ type Runner interface {
 
 type RunnerFuncMap map[string]RunnerFunc
 
+func keys(m RunnerFuncMap) (keys []string) {
+	for k := range m {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+	return
+}
+
+func expand(s string) (result []any) {
+	parts := strings.Split(s, "/")
+	for _, p := range parts {
+		result = append(result, p)
+	}
+	return
+}
+
 func (cmdRun RunnerFuncMap) Run(args []string) error {
 	exe := strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
 
@@ -31,30 +48,18 @@ func (cmdRun RunnerFuncMap) Run(args []string) error {
 	// https://github.com/alexpantyukhin/go-pattern-match
 	matcher := match.Match(osargs)
 
-	for cmd := range cmdRun {
-		subcmd := cmd
-		runf, _ := cmdRun[cmd]
-		// log.Println(subcmd)
+	for cmd, runf := range cmdRun {
 		matcher = matcher.
 			When(
-				[]interface{}{
-					subcmd,
-					match.ANY,
-				},
+				append(append([]any{}, expand(cmd)...), match.ANY),
 				func() error {
-					// log.Println(subcmd)
-					return runf(osargs[1:])
+					return runf(osargs[len(expand(cmd)):])
 				},
 			).
 			When(
-				[]interface{}{
-					match.ANY,
-					subcmd,
-					match.ANY,
-				},
+				append(append(append([]any{}, match.ANY), expand(cmd)...), match.ANY),
 				func() error {
-					// log.Println(subcmd)
-					return runf(osargs[2:])
+					return runf(osargs[len(expand(cmd))+1:])
 				},
 			)
 	}
@@ -76,7 +81,7 @@ func (cmdRun RunnerFuncMap) Run(args []string) error {
 
 func usage(cmdRun RunnerFuncMap) {
 	fmt.Println("please specify one of the subcommands:")
-	for c := range cmdRun {
+	for _, c := range keys(cmdRun) {
 		fmt.Println("-", c)
 	}
 	os.Exit(1)

@@ -1,6 +1,6 @@
 module github.com/btwiuse/multicall
 
-go 1.19
+go 1.22.1
 
 require github.com/alexpantyukhin/go-pattern-match v0.0.0-20230301210247-d84479c117d7
 
